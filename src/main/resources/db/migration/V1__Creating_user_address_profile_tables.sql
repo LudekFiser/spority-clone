@@ -1,0 +1,31 @@
+-- USERS
+CREATE TABLE users (
+                       id       BIGSERIAL PRIMARY KEY,                     -- AUTO_INCREMENT → BIGSERIAL
+                       name     VARCHAR(255) NOT NULL,
+                       email    VARCHAR(255) NOT NULL,
+                       password VARCHAR(255) NOT NULL,
+                       role     VARCHAR(20)  NOT NULL DEFAULT 'USER'
+);
+
+-- ADDRESSES
+CREATE TABLE addresses (
+                           id      BIGSERIAL    PRIMARY KEY,                   -- AUTO_INCREMENT → BIGSERIAL
+                           street  VARCHAR(255) NOT NULL,
+                           city    VARCHAR(255) NOT NULL,
+                           state   VARCHAR(255) NOT NULL,
+                           zip     VARCHAR(255) NOT NULL,
+                           user_id BIGINT       NOT NULL
+                               REFERENCES users (id) ON DELETE NO ACTION
+);
+
+-- (stejně jako v MySQL ponechávám index na cizí klíč)
+CREATE INDEX addresses_users_id_fk ON addresses (user_id);
+
+-- PROFILES (1:1 s users přes stejné id)
+CREATE TABLE profiles (
+                          id             BIGINT       PRIMARY KEY
+                              REFERENCES users (id) ON DELETE NO ACTION,
+                          bio            TEXT,                                  -- LONGTEXT → TEXT
+                          phone_number   VARCHAR(15),
+                          date_of_birth  DATE
+);
