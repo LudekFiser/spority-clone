@@ -29,6 +29,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        // Skipping JWT verification for public endpoints
+        String path = request.getRequestURI();
+        if (path.equals("/auth/login") ||
+            path.equals("/users/register") ||
+            path.equals("/auth/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
+
         var authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -37,7 +48,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var token = authHeader.replace("Bearer ", "");
         var jwt = jwtService.parseToken(token);
-        if (jwt == null || !jwt.isExpired()) {
+        /*if (jwt == null || !jwt.isExpired()) {
+            filterChain.doFilter(request, response);
+            return;
+        }*/
+        if (jwt == null || jwt.isExpired()) {
             filterChain.doFilter(request, response);
             return;
         }

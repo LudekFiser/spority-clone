@@ -22,8 +22,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public RegisterResponse register(RegisterRequest req) {
 
-        if(userRepository.existsByEmail(req.getEmail())) {
+        /*if(userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email is already registered!");
+        }*/
+
+        if(userRepository.existsByEmail(req.getEmail())) {
+            throw new IllegalArgumentException();
         }
 
         var user = userMapper.toEntity(req);

@@ -14,4 +14,5 @@ public class RegisterResponse {
     private String email;
     private String name;
     private ROLE role;
+    private boolean isVerified;
 }

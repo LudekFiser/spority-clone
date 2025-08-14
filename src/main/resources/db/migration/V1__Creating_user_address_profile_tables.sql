@@ -4,12 +4,12 @@ CREATE TABLE users (
                        name     VARCHAR(255) NOT NULL,
                        email    VARCHAR(255) NOT NULL,
                        password VARCHAR(255) NOT NULL,
-                       role     VARCHAR(20)  NOT NULL DEFAULT 'USER'
+                       role     VARCHAR(20)  NOT NULL DEFAULT 'USER',
+                       is_verified BOOLEAN NOT NULL DEFAULT false
 );
 
 -- unikát na email
 ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (email);
-
 
 -- ADDRESSES
 CREATE TABLE addresses (

@@ -2,7 +2,9 @@ package com.example.spotifyclone.entity;
 
 import com.example.spotifyclone.enums.ROLE;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
@@ -29,5 +31,9 @@ public class User {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private ROLE role;
+
+
+    @Column(name = "is_verified")
+    private boolean isVerified;
 
 }
