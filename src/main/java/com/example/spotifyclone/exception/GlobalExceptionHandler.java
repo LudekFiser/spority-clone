@@ -1,6 +1,7 @@
 package com.example.spotifyclone.exception;
 
 import com.example.spotifyclone.dto.ErrorDto;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

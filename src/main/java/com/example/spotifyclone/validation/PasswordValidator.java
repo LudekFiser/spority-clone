@@ -10,8 +10,10 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
         if (password == null) return true;
 
         boolean hasUppercase = password.matches(".*[A-Z].*");
+        boolean hasLowercase = password.matches(".*[a-z].*");
         boolean hasDigit = password.matches(".*\\d.*");
+        boolean hasSpecialChar = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*");
 
-        return hasUppercase && hasDigit;
+        return hasUppercase && hasLowercase && hasDigit && hasSpecialChar;
     }
 }

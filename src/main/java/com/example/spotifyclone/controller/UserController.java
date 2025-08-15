@@ -6,6 +6,7 @@ import com.example.spotifyclone.dto.RegisterResponse;
 import com.example.spotifyclone.enums.ROLE;
 import com.example.spotifyclone.mapper.UserMapper;
 import com.example.spotifyclone.repository.UserRepository;
+import com.example.spotifyclone.service.EmailService;
 import com.example.spotifyclone.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,6 @@ public class UserController {
                 .path("/api/users/{id}")
                 .buildAndExpand(user.getId())
                 .toUri();
-
         return ResponseEntity.created(uri).body(user);
     }
 }
