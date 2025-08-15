@@ -1,6 +1,7 @@
 package com.example.spotifyclone.service;
 
 import com.example.spotifyclone.entity.User;
+import com.example.spotifyclone.exception.UserNotFoundException;
 import com.example.spotifyclone.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,10 +13,23 @@ public class AuthService {
 
     private final UserRepository userRepository;
 
-    public User getCurrentUser() {
+    /*public User getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var userId = (Long) authentication.getPrincipal();
 
         return userRepository.findById(userId).orElse(null);
+    }*/
+    public User getCurrentUser() {
+        try {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return null;
+            }
+            var userId = (Long) authentication.getPrincipal();
+            return userRepository.findById(userId).orElse(null);
+        } catch (Exception e) {
+            return null; // Pokud je něco špatně s tokenem
+        }
     }
+
 }

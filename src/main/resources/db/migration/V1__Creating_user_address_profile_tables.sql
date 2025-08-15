@@ -5,7 +5,10 @@ CREATE TABLE users (
                        email    VARCHAR(255) NOT NULL,
                        password VARCHAR(255) NOT NULL,
                        role     VARCHAR(20)  NOT NULL DEFAULT 'USER',
-                       is_verified BOOLEAN NOT NULL DEFAULT false
+                       is_verified BOOLEAN NOT NULL DEFAULT false,
+                       verification_code VARCHAR(100),
+                       verification_code_expiration TIMESTAMP,
+                       created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- unikát na email

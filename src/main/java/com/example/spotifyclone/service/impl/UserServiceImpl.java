@@ -1,18 +1,27 @@
 package com.example.spotifyclone.service.impl;
 
-import com.example.spotifyclone.dto.ErrorDto;
+import com.example.spotifyclone.dto.ChangePasswordRequest;
 import com.example.spotifyclone.dto.RegisterRequest;
 import com.example.spotifyclone.dto.RegisterResponse;
+import com.example.spotifyclone.entity.User;
 import com.example.spotifyclone.enums.ROLE;
+import com.example.spotifyclone.exception.PasswordsDoNotMatchException;
+import com.example.spotifyclone.exception.PasswordsMatchingException;
+import com.example.spotifyclone.exception.UserNotFoundException;
 import com.example.spotifyclone.mapper.UserMapper;
 import com.example.spotifyclone.repository.UserRepository;
+import com.example.spotifyclone.service.AuthService;
 import com.example.spotifyclone.service.EmailService;
 import com.example.spotifyclone.service.UserService;
+import com.example.spotifyclone.utils.OtpService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 @Slf4j
@@ -24,6 +33,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AuthService authService;
+    private final OtpService otpService;
 
     /*@Override
     public RegisterResponse register(RegisterRequest req) {
@@ -72,5 +83,113 @@ public class UserServiceImpl implements UserService {
 
 
         return userMapper.toResponse(savedUser);
+    }
+
+    /*@Override
+    public void changePassword(Long userId, ChangePasswordRequest req) {
+        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        if(!passwordEncoder.matches(req.getOldPassword(), user.getPassword())) {
+            throw new PasswordsDoNotMatchException();
+        }
+
+        if(passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
+            throw new PasswordsMatchingException();
+        }
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        userRepository.save(user);
+    }*/
+
+    /*@Override
+    public void changePassword(String email, ChangePasswordRequest req) {
+        var user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+        // Password validations
+        if(!passwordEncoder.matches(req.getOldPassword(), user.getPassword())) {
+            throw new PasswordsDoNotMatchException();
+        }
+        if(passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
+            throw new PasswordsMatchingException();
+        }
+
+        // validating user otp
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(req.getOtp())) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("OTP expired");
+        }
+
+
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiration(null);
+        userRepository.save(user);
+    }*/
+    @Override
+    public void changePassword(ChangePasswordRequest req) {
+        //var user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+        var user = authService.getCurrentUser();
+        if (user == null) {
+            throw new RuntimeException("User is not authenticated");
+        }
+
+        // Password validations
+        if(!passwordEncoder.matches(req.getOldPassword(), user.getPassword())) {
+            throw new PasswordsDoNotMatchException();
+        }
+        if(passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
+            throw new PasswordsMatchingException();
+        }
+
+        // validating user otp
+        /*if (user.getVerificationCode() == null || !user.getVerificationCode().equals(req.getOtp())) {
+            throw new RuntimeException("Invalid OTP");
+        }*/
+        if (user.getVerificationCode() == null) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (!otpService.verifyOtp(req.getOtp(), user.getVerificationCode())) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("OTP expired");
+        }
+
+
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiration(null);
+        userRepository.save(user);
+    }
+
+
+    @Override
+    public void sendPasswordResetCode(String email) {
+        var user =  userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+
+        // Generate 6 digit OTP / VERIFICATION CODE
+        String otp = otpService.generateOtp();
+        // Calculate expiration time (current time + 15 minutes in milliseconds)
+        //long expirationTime = System.currentTimeMillis() + (15 * 60 * 1000);
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+
+        user.setVerificationCode(otpService.encodeOtp(otp));
+        user.setVerificationCodeExpiration(expirationTime);
+        userRepository.save(user);
+
+        try {
+            emailService.sendResetPasswordCode(user.getEmail(), otp);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to send reset password code to " + user.getEmail(), ex);
+        }
+    }
+
+    @Override
+    public void sendAccountVerificationCode(String email) {
+
+    }
+
+    @Override
+    public void verifyAccount(String email, String code) {
+
     }
 }

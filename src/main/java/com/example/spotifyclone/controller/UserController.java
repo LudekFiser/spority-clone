@@ -1,26 +1,18 @@
 package com.example.spotifyclone.controller;
 
-import com.example.spotifyclone.dto.ErrorDto;
+import com.example.spotifyclone.dto.ChangePasswordRequest;
 import com.example.spotifyclone.dto.RegisterRequest;
 import com.example.spotifyclone.dto.RegisterResponse;
-import com.example.spotifyclone.enums.ROLE;
-import com.example.spotifyclone.mapper.UserMapper;
-import com.example.spotifyclone.repository.UserRepository;
-import com.example.spotifyclone.service.EmailService;
 import com.example.spotifyclone.service.UserService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/users")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
@@ -36,5 +28,17 @@ public class UserController {
                 .buildAndExpand(user.getId())
                 .toUri();
         return ResponseEntity.created(uri).body(user);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(changePasswordRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/send-password-reset-code")
+    public ResponseEntity<Void> sendPasswordResetCode(@RequestParam String email) {
+        userService.sendPasswordResetCode(email);
+        return ResponseEntity.noContent().build();
     }
 }

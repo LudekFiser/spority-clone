@@ -21,6 +21,6 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters long!")
-    @ValidPassword(message = "Password must contain at least one uppercase letter and one digit")
+    @ValidPassword(message = "Password must contain at least one uppercase letter, one digit and one special character")
     private String password;
 }

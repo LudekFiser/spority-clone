@@ -62,5 +62,26 @@ public class GlobalExceptionHandler {
                 new ErrorDto("Invalid email or password")
         );
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleUserNotFoundException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorDto("User not found!")
+        );
+    }
+
+    @ExceptionHandler(PasswordsDoNotMatchException.class)
+    public ResponseEntity<ErrorDto> handlePasswordsDoNotMatchException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorDto("Old Password does not match!")
+        );
+    }
+
+    @ExceptionHandler(PasswordsMatchingException.class)
+    public ResponseEntity<ErrorDto> handlePasswordsMatchingException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorDto("New password cannot be the same as the Old password!")
+        );
+    }
 }
 

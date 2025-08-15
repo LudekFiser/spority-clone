@@ -17,8 +17,11 @@ public class Jwt {
         this.secretKey = secretKey;
     }
 
-    public boolean isExpired() {
+    /*public boolean isExpired() {
         return claims.getExpiration().after(new Date());
+    }*/
+    public boolean isExpired() {
+        return claims.getExpiration().before(new Date());
     }
 
     public Long getUserId() {
