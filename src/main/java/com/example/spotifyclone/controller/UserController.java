@@ -3,6 +3,7 @@ package com.example.spotifyclone.controller;
 import com.example.spotifyclone.dto.ChangePasswordRequest;
 import com.example.spotifyclone.dto.RegisterRequest;
 import com.example.spotifyclone.dto.RegisterResponse;
+import com.example.spotifyclone.dto.VerifyAccountRequest;
 import com.example.spotifyclone.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class UserController {
         return ResponseEntity.created(uri).body(user);
     }
 
-    @PostMapping("/change-password")
+    /*@PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         userService.changePassword(changePasswordRequest);
         return ResponseEntity.noContent().build();
@@ -39,6 +40,42 @@ public class UserController {
     @PostMapping("/send-password-reset-code")
     public ResponseEntity<Void> sendPasswordResetCode(@RequestParam String email) {
         userService.sendPasswordResetCode(email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/send-account-verification-code")
+    public ResponseEntity<Void> sendAccountVerificationCode(@RequestParam String email) {
+        userService.sendAccountVerificationCode(email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify-account")
+    public ResponseEntity<Void> verifyAccount(@Valid @RequestBody String otp, String email) {
+        userService.verifyAccount(email ,otp);
+        return ResponseEntity.noContent().build();
+    }*/
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(changePasswordRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/send-password-reset-code")
+    public ResponseEntity<Void> sendPasswordResetCode() {
+        userService.sendPasswordResetCode();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/send-account-verification-code")
+    public ResponseEntity<Void> sendAccountVerificationCode() {
+        userService.sendAccountVerificationCode();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify-account")
+    public ResponseEntity<Void> verifyAccount(@Valid @RequestBody VerifyAccountRequest request) {
+        userService.verifyAccount(request);
         return ResponseEntity.noContent().build();
     }
 }

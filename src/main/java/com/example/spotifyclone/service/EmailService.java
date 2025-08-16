@@ -167,6 +167,13 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendAccountVerificationCode(String toEmail, String name, String code) throws MessagingException {}
+    public void sendAccountVerificationCode(String toEmail, String otp) {
+        var message = new SimpleMailMessage();
+        message.setFrom(sentBy);
+        message.setTo(toEmail);
+        message.setSubject("Account verification code");
+        message.setText("This is your account verification code! ---->" + otp + "<----\n\nUse this CODE to proceed with verification code");
+        mailSender.send(message);
+    }
 
 }

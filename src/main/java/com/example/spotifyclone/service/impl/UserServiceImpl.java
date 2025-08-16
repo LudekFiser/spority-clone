@@ -3,6 +3,7 @@ package com.example.spotifyclone.service.impl;
 import com.example.spotifyclone.dto.ChangePasswordRequest;
 import com.example.spotifyclone.dto.RegisterRequest;
 import com.example.spotifyclone.dto.RegisterResponse;
+import com.example.spotifyclone.dto.VerifyAccountRequest;
 import com.example.spotifyclone.entity.User;
 import com.example.spotifyclone.enums.ROLE;
 import com.example.spotifyclone.exception.PasswordsDoNotMatchException;
@@ -162,14 +163,35 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Override
+    /*@Override
     public void sendPasswordResetCode(String email) {
         var user =  userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
 
         // Generate 6 digit OTP / VERIFICATION CODE
         String otp = otpService.generateOtp();
         // Calculate expiration time (current time + 15 minutes in milliseconds)
-        //long expirationTime = System.currentTimeMillis() + (15 * 60 * 1000);
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+
+        user.setVerificationCode(otpService.encodeOtp(otp));
+        user.setVerificationCodeExpiration(expirationTime);
+        userRepository.save(user);
+
+        try {
+            emailService.sendResetPasswordCode(user.getEmail(), otp);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to send reset password code to " + user.getEmail(), ex);
+        }
+    }*/
+    @Override
+    public void sendPasswordResetCode() {
+        var user = authService.getCurrentUser();
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
+
+        // Generate 6 digit OTP / VERIFICATION CODE
+        String otp = otpService.generateOtp();
+        // Calculate expiration time (current time + 15 minutes in milliseconds)
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
 
         user.setVerificationCode(otpService.encodeOtp(otp));
@@ -184,12 +206,80 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void sendAccountVerificationCode(String email) {
+    public void verifyAccount(VerifyAccountRequest req) {
+        var user = authService.getCurrentUser();
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
 
+        if (user.isVerified()) {
+            throw new RuntimeException("Account is already verified");
+        }
+
+        if (user.getVerificationCode() == null) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (!otpService.verifyOtp(req.getOtp(), user.getVerificationCode())) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("OTP expired");
+        }
+
+
+
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiration(null);
+        user.setVerified(true);
+        userRepository.save(user);
     }
 
-    @Override
-    public void verifyAccount(String email, String code) {
+    /*@Override
+    public void sendAccountVerificationCode(String email) {
+        var user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
 
+        if (user.isVerified()) {
+            throw new RuntimeException("Account is already verified");
+        }
+
+        String otp = otpService.generateOtp();
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+
+        user.setVerificationCode(otpService.encodeOtp(otp));
+        user.setVerificationCodeExpiration(expirationTime);
+
+        userRepository.save(user);
+
+        try {
+            emailService.sendAccountVerificationCode(user.getEmail(), otp);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to send account verification code to " + user.getEmail(), ex);
+        }
+    }*/
+
+    @Override
+    public void sendAccountVerificationCode(/*String email*/) {
+        var user = authService.getCurrentUser();
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
+
+        if (user.isVerified()) {
+            throw new RuntimeException("Account is already verified");
+        }
+
+        String otp = otpService.generateOtp();
+        LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+
+        user.setVerificationCode(otpService.encodeOtp(otp));
+        user.setVerificationCodeExpiration(expirationTime);
+
+        userRepository.save(user);
+
+        try {
+            emailService.sendAccountVerificationCode(user.getEmail(), otp);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to send account verification code to " + user.getEmail(), ex);
+        }
     }
 }
