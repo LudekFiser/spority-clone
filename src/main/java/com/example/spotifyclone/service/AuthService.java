@@ -28,7 +28,7 @@ public class AuthService {
             var userId = (Long) authentication.getPrincipal();
             return userRepository.findById(userId).orElse(null);
         } catch (Exception e) {
-            return null; // Pokud je něco špatně s tokenem
+            return null; // If Something is wrong with the token
         }
     }
 

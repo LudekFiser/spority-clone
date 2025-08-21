@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ import java.util.Map;
 @RequestMapping("/auth")
 @AllArgsConstructor
 @Tag(name = "auth")
+@Slf4j
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -91,19 +93,27 @@ public class AuthController {
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
 
         if(user.getTwoFactorEmail()) {
+            try {
+                String code = otpService.generateOtp();
+                LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+                user.setVerificationCode(otpService.encodeOtp(code));
+                user.setVerificationCodeExpiration(expirationTime);
+                userRepository.save(user);
 
-            String code = otpService.generateOtp();
-            LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
-            user.setVerificationCode(otpService.encodeOtp(code));
-            user.setVerificationCodeExpiration(expirationTime);
-            userRepository.save(user);
+                emailService.send2FAVerificationCode(user.getEmail(), code);
 
-            emailService.send2FAVerificationCode(user.getEmail(), code);
+                return ResponseEntity.ok(new TwoFAResponse(
+                        "2FA Required",
+                        user.getId()
+                ));
+            } catch (Exception e) {
+                log.error("Failed to send 2FA code to user: {}", user.getEmail(), e);
+                user.setVerificationCode(null);
+                user.setVerificationCodeExpiration(null);
+                userRepository.save(user);
 
-            return ResponseEntity.ok(new TwoFAResponse(
-                    "2FA Required",
-                    user.getId()
-            ));
+                throw new RuntimeException("Failed to send 2FA verification code. Please try again.");
+            }
         }
 
         var accessToken = jwtService.generateAccessToken(user);
