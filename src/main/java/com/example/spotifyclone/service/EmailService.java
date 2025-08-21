@@ -1,6 +1,6 @@
 package com.example.spotifyclone.service;
 
-import com.example.spotifyclone.utils.OtpService;
+import com.example.spotifyclone.utils.otp.OtpService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -173,6 +173,15 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject("Account verification code");
         message.setText("This is your account verification code! ---->" + otp + "<----\n\nUse this CODE to proceed with verification code");
+        mailSender.send(message);
+    }
+
+    public void send2FAVerificationCode(String toEmail, String otp) {
+        var message = new SimpleMailMessage();
+        message.setFrom(sentBy);
+        message.setTo(toEmail);
+        message.setSubject("2FA Login code");
+        message.setText("This is your 2FA Login code! ---->" + otp + "<----\n\nUse this CODE to proceed with verification code");
         mailSender.send(message);
     }
 

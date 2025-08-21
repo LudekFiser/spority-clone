@@ -6,6 +6,7 @@ import com.example.spotifyclone.dto.RegisterResponse;
 import com.example.spotifyclone.dto.VerifyAccountRequest;
 import com.example.spotifyclone.entity.User;
 import com.example.spotifyclone.enums.ROLE;
+import com.example.spotifyclone.exception.NotOldEnoughException;
 import com.example.spotifyclone.exception.PasswordsDoNotMatchException;
 import com.example.spotifyclone.exception.PasswordsMatchingException;
 import com.example.spotifyclone.exception.UserNotFoundException;
@@ -14,7 +15,7 @@ import com.example.spotifyclone.repository.UserRepository;
 import com.example.spotifyclone.service.AuthService;
 import com.example.spotifyclone.service.EmailService;
 import com.example.spotifyclone.service.UserService;
-import com.example.spotifyclone.utils.OtpService;
+import com.example.spotifyclone.utils.otp.OtpService;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.ThreadLocalRandom;
 
 
 @Slf4j
@@ -69,10 +69,24 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException();
         }
 
+        if(!User.isAdult(req.getDateOfBirth())) {
+            throw new NotOldEnoughException();
+        }
         var user = userMapper.toEntity(req);
+
+        /*if(user.extractAgeFromBirthDate(req.getDateOfBirth()) < 18) {
+            System.out.println(user.extractAgeFromBirthDate(user.getDateOfBirth()));
+            throw new NotOldEnoughException();
+        }*/
+        /*if (user.getAgeFromBirthDate(req.getDateOfBirth())) {
+            System.out.println("AGE: "+user.getAgeFromBirthDate(req.getDateOfBirth()));
+            throw new NotOldEnoughException();
+        }*/
+
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(ROLE.USER);
+        user.setTwoFactorEmail(false);
 
         var savedUser = userRepository.save(user);
 

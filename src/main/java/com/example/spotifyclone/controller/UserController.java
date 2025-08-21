@@ -5,15 +5,20 @@ import com.example.spotifyclone.dto.RegisterRequest;
 import com.example.spotifyclone.dto.RegisterResponse;
 import com.example.spotifyclone.dto.VerifyAccountRequest;
 import com.example.spotifyclone.service.UserService;
+import com.example.spotifyclone.utils.rateLimit.RateLimit;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.concurrent.TimeUnit;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@Tag(name = "users")
 public class UserController {
 
     private final UserService userService;
@@ -61,13 +66,14 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/send-password-reset-code")
+    @PostMapping("/send-password-reset-code")  // might also be forgot-password endpoint
     public ResponseEntity<Void> sendPasswordResetCode() {
         userService.sendPasswordResetCode();
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/send-account-verification-code")
+    @RateLimit(requests = 3, timeAmount = 1, timeUnit = TimeUnit.HOURS, keyPrefix = "send-verification-code")
     public ResponseEntity<Void> sendAccountVerificationCode() {
         userService.sendAccountVerificationCode();
         return ResponseEntity.noContent().build();

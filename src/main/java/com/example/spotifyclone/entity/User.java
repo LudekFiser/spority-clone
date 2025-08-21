@@ -7,8 +7,9 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -48,6 +50,30 @@ public class User {
 
 
     @Column(name = "created_at", updatable = false, insertable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
+
+
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private List<Address> addresses = new ArrayList<>();
+
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "date_of_birth", updatable = false/*, insertable = false*/)
+    private LocalDate dateOfBirth;
+
+
+    @Column(name = "two_factor_email")
+    private Boolean twoFactorEmail = false;
+
+    /*@OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Profile profile;*/
+
+    public static boolean isAdult(LocalDate birthDate) {
+        return birthDate.plusYears(18).isBefore(LocalDate.now()) ||
+               birthDate.plusYears(18).equals(LocalDate.now());
+    }
 }

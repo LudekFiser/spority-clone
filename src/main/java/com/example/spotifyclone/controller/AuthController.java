@@ -1,15 +1,21 @@
 package com.example.spotifyclone.controller;
 
-import com.example.spotifyclone.dto.CurrentUserDto;
-import com.example.spotifyclone.dto.ErrorDto;
+import com.example.spotifyclone.dto.*;
 import com.example.spotifyclone.jwt.JwtConfig;
-import com.example.spotifyclone.dto.LoginRequest;
 import com.example.spotifyclone.jwt.JwtResponse;
 import com.example.spotifyclone.jwt.JwtService;
 import com.example.spotifyclone.mapper.UserMapper;
 import com.example.spotifyclone.repository.UserRepository;
+import com.example.spotifyclone.service.EmailService;
+import com.example.spotifyclone.service.UserService;
+import com.example.spotifyclone.utils.otp.OtpService;
+import io.jsonwebtoken.JwtException;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,16 +24,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
 @AllArgsConstructor
+@Tag(name = "auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -35,9 +47,12 @@ public class AuthController {
     private final JwtConfig jwtConfig;
     private final UserRepository userRepository;
     private final UserMapper  userMapper;
+    private final OtpService otpService;
+    private final UserService userService;
+    private final EmailService emailService;
 
 
-    @PostMapping("/login")
+    /*@PostMapping("/login")
     public ResponseEntity<JwtResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletResponse response)
@@ -48,6 +63,86 @@ public class AuthController {
                         request.getPassword())
         );
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+
+        var cookie = new Cookie("refreshToken", refreshToken.toString());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/auth/refresh");
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());  // 7 days
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+    }*/
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse response)
+    {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword())
+        );
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+
+        if(user.getTwoFactorEmail()) {
+
+            String code = otpService.generateOtp();
+            LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
+            user.setVerificationCode(otpService.encodeOtp(code));
+            user.setVerificationCodeExpiration(expirationTime);
+            userRepository.save(user);
+
+            emailService.send2FAVerificationCode(user.getEmail(), code);
+
+            return ResponseEntity.ok(new TwoFAResponse(
+                    "2FA Required",
+                    user.getId()
+            ));
+        }
+
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+
+        var cookie = new Cookie("refreshToken", refreshToken.toString());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/auth/refresh");
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());  // 7 days
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<JwtResponse> verify2fa(
+            @Valid @RequestBody LoginRequest_email_twoFA req,
+            HttpServletResponse response
+    ) {
+        var user = userRepository.findById(req.getUserId()).orElseThrow();
+
+        if (user.getVerificationCode() == null) {
+            throw new RuntimeException("Invalid OTP");
+        }
+        if (user.getVerificationCodeExpiration() == null ||
+            user.getVerificationCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("OTP expired");
+        }
+        if (!otpService.verifyOtp(req.getOtp(), user.getVerificationCode())) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        // Reset 2FA State
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiration(null);
+        userRepository.save(user);
+
 
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);

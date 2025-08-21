@@ -83,5 +83,22 @@ public class GlobalExceptionHandler {
                 new ErrorDto("New password cannot be the same as the Old password!")
         );
     }
+
+    @ExceptionHandler(NotOldEnoughException.class)
+    public ResponseEntity<ErrorDto> handleNotOldEnoughException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorDto("You must be 18+ years old to proceed!")
+        );
+    }
+
+
+    @ExceptionHandler(TooManyAttemptsException.class)
+    public ResponseEntity<ErrorDto> handleTooManyAttemptsException(TooManyAttemptsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(
+                new ErrorDto(ex.getMessage())
+        );
+    }
+
+
 }
 
