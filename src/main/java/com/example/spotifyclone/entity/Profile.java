@@ -24,7 +24,7 @@ public class Profile {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id")
     @ToString.Exclude
-    private User users;
+    private User user;
 
     @Column(name = "bio")
     private String bio;

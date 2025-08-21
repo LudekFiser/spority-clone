@@ -48,10 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var token = authHeader.replace("Bearer ", "");
         var jwt = jwtService.parseToken(token);
-        /*if (jwt == null || !jwt.isExpired()) {
-            filterChain.doFilter(request, response);
-            return;
-        }*/
+
         if (jwt == null || jwt.isExpired()) {
             filterChain.doFilter(request, response);
             return;
