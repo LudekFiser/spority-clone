@@ -12,10 +12,12 @@ CREATE TABLE users (
                        verification_code_expiration TIMESTAMP,
                        created_at TIMESTAMP NOT NULL DEFAULT now(),
                        phone_number   VARCHAR(15) NOT NULL,
-                       date_of_birth  DATE NOT NULL
+                       date_of_birth  DATE NOT NULL,
+                       avatar_id BIGINT
 );
 -- unikát na email
 ALTER TABLE users ADD CONSTRAINT users_email_key UNIQUE (email);
+
 
 -- ADDRESSES
 CREATE TABLE addresses (
@@ -34,6 +36,3 @@ CREATE TABLE addresses (
     ADD CONSTRAINT addresses_users_id_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;*/
 -- (stejně jako v MySQL ponechávám index na cizí klíč)
 CREATE INDEX addresses_users_id_fk ON addresses (user_id);
-
-
-

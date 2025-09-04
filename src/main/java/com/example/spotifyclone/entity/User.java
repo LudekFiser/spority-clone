@@ -40,6 +40,7 @@ public class User {
 
 
     @Column(name = "is_verified")
+    @Builder.Default
     private boolean isVerified = false;
 
     @Column(name = "verification_code")
@@ -51,6 +52,16 @@ public class User {
 
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private List<Idea> ideas = new ArrayList<>();
+
+    /*@Column(name = "avatar_url")
+    private String profilePictureUrl;
+
+    @Column(name = "avatar_public_id")
+    private String profilePicturePublicId;*/
 
 
 
@@ -67,10 +78,16 @@ public class User {
 
 
     @Column(name = "two_factor_email")
+    @Builder.Default
     private Boolean twoFactorEmail = false;
 
-    /*@OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
+
+   /* @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Profile profile;*/
+   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+   @JoinColumn(name = "avatar_id")
+   private Image avatarId;
+
 
     public static boolean isAdult(LocalDate birthDate) {
         return birthDate.plusYears(18).isBefore(LocalDate.now()) ||

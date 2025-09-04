@@ -1,4 +1,4 @@
-package com.example.spotifyclone.dto;
+package com.example.spotifyclone.dto.auth;
 
 import com.example.spotifyclone.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;

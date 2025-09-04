@@ -101,15 +101,15 @@ public class EmailService {
             Your account has been successfully created and is ready to use.
             Welcome to our amazing community!
             
-            We're thrilled to have you join our growing community! You now have 
+            We're thrilled to have you join our growing community! You now have
             access to all our premium features and services.
             
             FEATURES YOU'LL LOVE:
             ⚡ Lightning Fast Performance
-            🔒 Secure & Safe Environment  
+            🔒 Secure & Safe Environment
             📱 Mobile-Ready Experience
             
-            If you have any questions or need assistance, our support team is 
+            If you have any questions or need assistance, our support team is
             always here to help. Don't hesitate to reach out!
             
             GET STARTED: %s
@@ -164,6 +164,15 @@ public class EmailService {
         message.setTo(toEmail);
         message.setSubject("Password Reset CODE");
         message.setText("This is your password reset code! ---->" + otp + "<----\n\nUse this CODE to proceed with resetting your password");
+        mailSender.send(message);
+    }
+
+    public void sendAccountDeletionCode(String toEmail, String otp) {
+        var message = new SimpleMailMessage();
+        message.setFrom(sentBy);
+        message.setTo(toEmail);
+        message.setSubject("Account deletion CODE");
+        message.setText("Your account deletion code ---->" + otp + "<----\n\nUse this CODE to proceed with deleting your account");
         mailSender.send(message);
     }
 

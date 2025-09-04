@@ -1,4 +1,4 @@
-package com.example.spotifyclone.dto;
+package com.example.spotifyclone.dto.auth;
 
 import com.example.spotifyclone.validation.Lowercase;
 import com.example.spotifyclone.validation.ValidPassword;
@@ -40,4 +40,5 @@ public class RegisterRequest {
     /*@JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)*/
     private LocalDate dateOfBirth;
+
 }

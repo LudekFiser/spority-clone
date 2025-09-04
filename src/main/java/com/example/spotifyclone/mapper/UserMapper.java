@@ -1,17 +1,18 @@
 package com.example.spotifyclone.mapper;
 
 
-import com.example.spotifyclone.dto.CurrentUserDto;
-import com.example.spotifyclone.dto.RegisterRequest;
-import com.example.spotifyclone.dto.RegisterResponse;
+import com.example.spotifyclone.dto.auth.CurrentUserDto;
+import com.example.spotifyclone.dto.auth.RegisterRequest;
+import com.example.spotifyclone.dto.auth.RegisterResponse;
+import com.example.spotifyclone.dto.image.ImageDto;
+import com.example.spotifyclone.dto.image.UploadedImageDto;
+import com.example.spotifyclone.entity.Idea;
 import com.example.spotifyclone.entity.User;
-import com.example.spotifyclone.enums.ROLE;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -36,15 +37,28 @@ public class UserMapper {
                 .isVerified(user.isVerified())
                 .phoneNumber(user.getPhoneNumber())
                 .dateOfBirth(user.getDateOfBirth())
-                .createdAt(LocalDateTime.now())
+                .createdAt(user.getCreatedAt())
+                .ideas(user.getIdeas().stream().map(Idea::getId).toList())
+                .twoFactorEmail(user.getTwoFactorEmail())
                 .build();
     }
 
     public CurrentUserDto toUserDto(User user) {
         return CurrentUserDto.builder()
                 .id(user.getId())
-                .email(user.getEmail())
                 .name(user.getName())
+                .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .role(user.getRole())
+                .phoneNumber(user.getPhoneNumber())
+                .dateOfBirth(user.getDateOfBirth())
+                .twoFactorEmail(user.getTwoFactorEmail())
+                .isVerified(user.isVerified())
+                .ideas(user.getIdeas().stream().map(Idea::getId).toList())
+                .avatarId(new ImageDto(
+                        user.getAvatarId().getImageUrl(),
+                        user.getAvatarId().getPublicId(),
+                        user.getAvatarId().getOrd()))
                 .build();
     }
 }

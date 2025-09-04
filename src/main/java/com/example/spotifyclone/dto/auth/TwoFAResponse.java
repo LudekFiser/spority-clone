@@ -1,4 +1,4 @@
-package com.example.spotifyclone.dto;
+package com.example.spotifyclone.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

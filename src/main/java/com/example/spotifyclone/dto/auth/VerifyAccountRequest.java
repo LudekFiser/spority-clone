@@ -1,4 +1,4 @@
-package com.example.spotifyclone.dto;
+package com.example.spotifyclone.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

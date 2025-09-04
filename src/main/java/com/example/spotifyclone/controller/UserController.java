@@ -1,18 +1,20 @@
 package com.example.spotifyclone.controller;
 
-import com.example.spotifyclone.dto.ChangePasswordRequest;
-import com.example.spotifyclone.dto.RegisterRequest;
-import com.example.spotifyclone.dto.RegisterResponse;
-import com.example.spotifyclone.dto.VerifyAccountRequest;
+import com.example.spotifyclone.dto.auth.*;
 import com.example.spotifyclone.service.UserService;
 import com.example.spotifyclone.utils.rateLimit.RateLimit;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -25,7 +27,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(
-            @Valid @RequestBody RegisterRequest registerRequest,
+           @Valid @RequestBody RegisterRequest registerRequest,
             UriComponentsBuilder uriBuilder) {
         var user =  userService.register(registerRequest);
 
@@ -36,33 +38,38 @@ public class UserController {
         return ResponseEntity.created(uri).body(user);
     }
 
-    /*@PostMapping("/change-password")
-    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
-        userService.changePassword(changePasswordRequest);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequest req) {
+        var user = userService.updateUser(req);
+        return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/send-password-reset-code")
-    public ResponseEntity<Void> sendPasswordResetCode(@RequestParam String email) {
-        userService.sendPasswordResetCode(email);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/profile-picture")
+    public ResponseEntity<CurrentUserDto> updateProfilePicture(@RequestPart("image") MultipartFile image) {
+        var changeProfilePicture = userService.changeProfilePicture(image);
+        return ResponseEntity.ok().body(changeProfilePicture);
     }
 
-    @PostMapping("/send-account-verification-code")
-    public ResponseEntity<Void> sendAccountVerificationCode(@RequestParam String email) {
-        userService.sendAccountVerificationCode(email);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/profile-picture/delete")
+    public ResponseEntity<Void> deleteProfilePicture() {
+        userService.deleteProfilePicture();
+        return ResponseEntity.ok().build();
     }
-
-    @PostMapping("/verify-account")
-    public ResponseEntity<Void> verifyAccount(@Valid @RequestBody String otp, String email) {
-        userService.verifyAccount(email ,otp);
-        return ResponseEntity.noContent().build();
-    }*/
 
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         userService.changePassword(changePasswordRequest);
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteUser(@Valid @RequestBody DeleteAccountDto otp) {
+        userService.deleteUser(otp);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/send-account-delete-code")
+    public ResponseEntity<Void> sendAccountDeletionCode() {
+        userService.sendAccountDeletionCode();
         return ResponseEntity.noContent().build();
     }
 

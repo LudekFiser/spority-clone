@@ -1,18 +1,23 @@
 package com.example.spotifyclone.service;
 
-import com.example.spotifyclone.dto.ChangePasswordRequest;
-import com.example.spotifyclone.dto.RegisterRequest;
-import com.example.spotifyclone.dto.RegisterResponse;
-import com.example.spotifyclone.dto.VerifyAccountRequest;
+import com.example.spotifyclone.dto.auth.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
     RegisterResponse register(RegisterRequest req);
 
-    void sendPasswordResetCode(/*String email*/);
-    //void changePassword(Long userId, ChangePasswordRequest req);
+    void sendPasswordResetCode();
     void changePassword(ChangePasswordRequest req);
 
-    void sendAccountVerificationCode(/*String email*/);
-    void verifyAccount(/*String email, *//*String code*/VerifyAccountRequest req);
+    void sendAccountVerificationCode();
+    void verifyAccount(VerifyAccountRequest req);
+
+
+    RegisterResponse updateUser(UpdateUserRequest req);
+    CurrentUserDto changeProfilePicture(MultipartFile image);
+
+    void sendAccountDeletionCode();
+    void deleteUser(DeleteAccountDto otp);
+    void deleteProfilePicture();
 }

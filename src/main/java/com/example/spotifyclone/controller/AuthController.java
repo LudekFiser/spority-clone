@@ -1,6 +1,10 @@
 package com.example.spotifyclone.controller;
 
-import com.example.spotifyclone.dto.*;
+import com.example.spotifyclone.dto.auth.CurrentUserDto;
+import com.example.spotifyclone.dto.auth.LoginRequest;
+import com.example.spotifyclone.dto.auth.TwoFARequest;
+import com.example.spotifyclone.dto.auth.TwoFAResponse;
+import com.example.spotifyclone.entity.User;
 import com.example.spotifyclone.jwt.JwtConfig;
 import com.example.spotifyclone.jwt.JwtResponse;
 import com.example.spotifyclone.jwt.JwtService;
@@ -9,33 +13,20 @@ import com.example.spotifyclone.repository.UserRepository;
 import com.example.spotifyclone.service.EmailService;
 import com.example.spotifyclone.service.UserService;
 import com.example.spotifyclone.utils.otp.OtpService;
-import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -132,7 +123,7 @@ public class AuthController {
 
     @PostMapping("/verify-2fa")
     public ResponseEntity<JwtResponse> verify2fa(
-            @Valid @RequestBody LoginRequest_email_twoFA req,
+            @Valid @RequestBody TwoFARequest req,
             HttpServletResponse response
     ) {
         var user = userRepository.findById(req.getUserId()).orElseThrow();
@@ -198,4 +189,21 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
     }
 
+
+    // helper method might use?
+
+    private ResponseEntity<JwtResponse> getResponseEntity(HttpServletResponse response, User user) {
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+
+        var cookie = new Cookie("refreshToken", refreshToken.toString());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/auth/refresh");
+        cookie.setMaxAge(jwtConfig.getRefreshTokenExpiration());  // 7 days
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(new JwtResponse(accessToken.toString()));
+    }
 }
