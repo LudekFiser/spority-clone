@@ -38,7 +38,6 @@ public class UserMapper {
                 .phoneNumber(user.getPhoneNumber())
                 .dateOfBirth(user.getDateOfBirth())
                 .createdAt(user.getCreatedAt())
-                .ideas(user.getIdeas().stream().map(Idea::getId).toList())
                 .twoFactorEmail(user.getTwoFactorEmail())
                 .build();
     }
@@ -54,7 +53,6 @@ public class UserMapper {
                 .dateOfBirth(user.getDateOfBirth())
                 .twoFactorEmail(user.getTwoFactorEmail())
                 .isVerified(user.isVerified())
-                .ideas(user.getIdeas().stream().map(Idea::getId).toList())
                 .avatarId(new ImageDto(
                         user.getAvatarId().getImageUrl(),
                         user.getAvatarId().getPublicId(),
